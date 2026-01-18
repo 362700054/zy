@@ -70,6 +70,17 @@ void Preprocess::process(const sensor_msgs::PointCloud2::ConstPtr &msg, PointClo
 
 void Preprocess::velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
 {
+    static int call_count = 0;
+    call_count++;
+    if (call_count <= 3)  // 只输出前3次
+    {
+      printf("\n=== velodyne_handler called [%d] ===\n", call_count);
+      printf("  feature_enabled: %s\n", feature_enabled ? "true" : "false");
+      printf("  body filter params: X=[%.1f,%.1f] Y=[%.1f,%.1f] Z=[%.1f,%.1f] mm\n",
+             body_x_min, body_x_max, body_y_min, body_y_max, body_z_min, body_z_max);
+      fflush(stdout);
+    }
+
     pl_surf.clear();
     pl_corn.clear();
     pl_full.clear();
@@ -672,8 +683,14 @@ void Preprocess::setBodyFilter(double x_min, double x_max, double y_min, double 
   body_y_max = y_max;
   body_z_min = z_min;
   body_z_max = z_max;
-  printf("Body filter params: X=[%.1f,%.1f]mm, Y=[%.1f,%.1f]mm, Z=[%.1f,%.1f]mm\n",
-         body_x_min, body_x_max, body_y_min, body_y_max, body_z_min, body_z_max);
+  printf("\n=== Body Filter Parameters Loaded ===\n");
+  printf("  X: [%.1f, %.1f] mm\n", body_x_min, body_x_max);
+  printf("  Y: [%.1f, %.1f] mm\n", body_y_min, body_y_max);
+  printf("  Z: [%.1f, %.1f] mm\n", body_z_min, body_z_max);
+  printf("====================================\n");
+  fflush(stdout);
+  ROS_INFO("Body Filter: X=[%.1f,%.1f]mm, Y=[%.1f,%.1f]mm, Z=[%.1f,%.1f]mm",
+           body_x_min, body_x_max, body_y_min, body_y_max, body_z_min, body_z_max);
 }
 
 // 判断点是否在车身立方体内（单位：mm）
@@ -681,8 +698,20 @@ void Preprocess::setBodyFilter(double x_min, double x_max, double y_min, double 
 // 输入点：pt.x, pt.y, pt.z（单位：m）
 static int body_filtered_count = 0;  // 被过滤的点数统计
 static int body_total_count = 0;     // 总点数统计
+static bool first_call = true;  // 首次调用标记
 bool Preprocess::filterBodyPoints(const PointType &pt)
 {
+  // 首次调用时输出当前参数
+  if (first_call)
+  {
+    printf("\n--- filterBodyPoints first call ---\n");
+    printf("  Current filter params: X=[%.1f,%.1f] Y=[%.1f,%.1f] Z=[%.1f,%.1f] mm\n",
+           body_x_min, body_x_max, body_y_min, body_y_max, body_z_min, body_z_max);
+    printf("  Checking point: (%.3f, %.3f, %.3f) m -> (%.1f, %.1f, %.1f) mm\n",
+           pt.x, pt.y, pt.z, pt.x*1000, pt.y*1000, pt.z*1000);
+    first_call = false;
+  }
+
   // 转换为mm单位
   double x_mm = pt.x * 1000.0;
   double y_mm = pt.y * 1000.0;
@@ -695,11 +724,13 @@ bool Preprocess::filterBodyPoints(const PointType &pt)
   {
     body_filtered_count++;
     body_total_count++;
-    // 每过滤1000个点输出一次
-    if (body_filtered_count % 1000 == 0)
+    // 每过滤100个点输出一次
+    if (body_filtered_count % 100 == 0)
     {
-      printf("Body filter: filtered %d/%d points (%.1f%%)\n",
-             body_filtered_count, body_total_count, body_filtered_count * 100.0 / body_total_count);
+      printf("Body filter: *** FILTERED *** point (%.1f,%.1f,%.1f) mm (filtered: %d/%d, %.1f%%)\n",
+             x_mm, y_mm, z_mm, body_filtered_count, body_total_count,
+             body_filtered_count * 100.0 / body_total_count);
+      fflush(stdout);
     }
     return false;  // 在立方体内，过滤掉
   }
