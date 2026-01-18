@@ -276,8 +276,12 @@ void lasermap_fov_segment()
     kdtree_delete_time = omp_get_wtime() - delete_begin;
 }
 
-void standard_pcl_cbk(const sensor_msgs::PointCloud2::ConstPtr &msg) 
+void standard_pcl_cbk(const sensor_msgs::PointCloud2::ConstPtr &msg)
 {
+    std::cerr << "\n=== standard_pcl_cbk called ===" << std::endl;
+    std::cerr << "  Point cloud size: " << msg->width * msg->height << std::endl;
+    std::cerr << "  Point cloud data size: " << msg->data.size() << std::endl;
+
     mtx_buffer.lock();
     scan_count ++;
     double preprocess_start_time = omp_get_wtime();
@@ -289,6 +293,9 @@ void standard_pcl_cbk(const sensor_msgs::PointCloud2::ConstPtr &msg)
 
     PointCloudXYZI::Ptr  ptr(new PointCloudXYZI());
     p_pre->process(msg, ptr);
+
+    std::cerr << "  After preprocess: " << ptr->points.size() << " points in output cloud" << std::endl;
+
     lidar_buffer.push_back(ptr);
     time_buffer.push_back(msg->header.stamp.toSec());
     last_timestamp_lidar = msg->header.stamp.toSec();
