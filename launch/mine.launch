@@ -4,7 +4,7 @@
 
     <arg name="rviz" default="true" />
 
-    <rosparam command="load" file="$(find fast_lio_original)/config/mine.yaml" />
+    <rosparam command="load" file="$(find my_fast_lio)/config/mine.yaml" />
 
     <!-- 调参说明：  -->
     <!-- point_filter_num，和filter_size_surf是滤波参数，越小前端效果越好，但运行越慢 -->
@@ -22,10 +22,10 @@
     <!-- visualization -->
     <param name="visulize_map" value="true"/>
 
-    <node pkg="fast_lio_original" type="fastlio_mapping" name="laserMapping" output="screen" />
+    <node pkg="my_fast_lio" type="my_fastlio_mapping" name="laserMapping" output="screen" />
 
     <group if="$(arg rviz)">
-    <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz_fast_lio" args="-d $(find fast_lio_original)/rviz_cfg/loam_livox.rviz" />
+    <node launch-prefix="nice" pkg="rviz" type="rviz" name="rviz" args="-d $(find my_fast_lio)/rviz_cfg/loam_livox.rviz" />
     </group>
 
 </launch>
