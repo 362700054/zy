@@ -1,0 +1,42 @@
+# 金川三矿1250平面电机车数据集配置文件
+# LiDAR: Velodyne VLP-16
+# IMU: WIT IMU
+# FAST_LIO_original配置
+
+common:
+    lid_topic:  "/velodyne_points"
+    imu_topic:  "/wit/imu"
+    time_sync_en: false         # ONLY turn on when external time synchronization is really not possible
+
+preprocess:
+    lidar_type: 2                # 1 for Livox serials LiDAR, 2 for Velodyne LiDAR, 3 for ouster LiDAR,
+    scan_line: 16                # VLP-16 has 16 channels
+    blind: 2
+
+mapping:
+    
+    acc_cov: 1.353936                  # 原0.008
+    gyr_cov: 1.18474                 # 0.0005 
+    b_acc_cov: 0.002121               # 0.0003
+    b_gyr_cov: 0.0000726             # 0.000005
+
+    fov_degree:    180
+    det_range:     100.0
+    extrinsic_est_en:  false      # true: enable online estimation of IMU-LiDAR extrinsic,
+
+    # 外参标定结果 - LiDAR到IMU的变换
+    # 来源: 三次标定结果的平均值 (取负后)
+    extrinsic_T: [ 0.0164105853, -0.0083282467, 0.0423384640]
+    extrinsic_R: [ -0.1485686501, -0.9888994000, -0.0023093080,
+                   0.9889015318, -0.1485706555,  0.0007216038,
+                   -0.0010566890, -0.0021764705,  0.9999970732]
+
+publish:
+    scan_publish_en:  true       # false: close all the point cloud output
+    dense_publish_en: true       # false: low down the points number in a global-frame point clouds scan.
+    scan_bodyframe_pub_en: false  # true: output the point cloud scans in IMU-body-frame
+
+pcd_save:
+    pcd_save_en: false
+    interval: -1                 # how many LiDAR frames saved in each pcd file;
+                                 # -1 : all frames will be saved in ONE pcd file, may lead to memory crash when having too much frames.
