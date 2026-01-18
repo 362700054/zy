@@ -72,13 +72,12 @@ void Preprocess::velodyne_handler(const sensor_msgs::PointCloud2::ConstPtr &msg)
 {
     static int call_count = 0;
     call_count++;
-    if (call_count <= 3)  // 只输出前3次
+    if (call_count <= 5)  // 只输出前5次
     {
-      printf("\n=== velodyne_handler called [%d] ===\n", call_count);
-      printf("  feature_enabled: %s\n", feature_enabled ? "true" : "false");
-      printf("  body filter params: X=[%.1f,%.1f] Y=[%.1f,%.1f] Z=[%.1f,%.1f] mm\n",
-             body_x_min, body_x_max, body_y_min, body_y_max, body_z_min, body_z_max);
-      fflush(stdout);
+      std::cerr << "\n=== velodyne_handler called [" << call_count << "] ===" << std::endl;
+      std::cerr << "  feature_enabled: " << (feature_enabled ? "true" : "false") << std::endl;
+      std::cerr << "  body filter params: X=[" << body_x_min << "," << body_x_max << "] Y=["
+                 << body_y_min << "," << body_y_max << "] Z=[" << body_z_min << "," << body_z_max << "] mm" << std::endl;
     }
 
     pl_surf.clear();
@@ -683,14 +682,14 @@ void Preprocess::setBodyFilter(double x_min, double x_max, double y_min, double 
   body_y_max = y_max;
   body_z_min = z_min;
   body_z_max = z_max;
-  printf("\n=== Body Filter Parameters Loaded ===\n");
-  printf("  X: [%.1f, %.1f] mm\n", body_x_min, body_x_max);
-  printf("  Y: [%.1f, %.1f] mm\n", body_y_min, body_y_max);
-  printf("  Z: [%.1f, %.1f] mm\n", body_z_min, body_z_max);
-  printf("====================================\n");
-  fflush(stdout);
-  ROS_INFO("Body Filter: X=[%.1f,%.1f]mm, Y=[%.1f,%.1f]mm, Z=[%.1f,%.1f]mm",
-           body_x_min, body_x_max, body_y_min, body_y_max, body_z_min, body_z_max);
+
+  // 使用 cerr 直接输出，避免 ROS 日志缓冲
+  std::cerr << "\n=== Body Filter Parameters Loaded ===" << std::endl;
+  std::cerr << "  X: [" << body_x_min << ", " << body_x_max << "] mm" << std::endl;
+  std::cerr << "  Y: [" << body_y_min << ", " << body_y_max << "] mm" << std::endl;
+  std::cerr << "  Z: [" << body_z_min << ", " << body_z_max << "] mm" << std::endl;
+  std::cerr << "====================================" << std::endl;
+  std::cerr << ">>> setBodyFilter executed!" << std::endl;
 }
 
 // 判断点是否在车身立方体内（单位：mm）
@@ -704,11 +703,11 @@ bool Preprocess::filterBodyPoints(const PointType &pt)
   // 首次调用时输出当前参数
   if (first_call)
   {
-    printf("\n--- filterBodyPoints first call ---\n");
-    printf("  Current filter params: X=[%.1f,%.1f] Y=[%.1f,%.1f] Z=[%.1f,%.1f] mm\n",
-           body_x_min, body_x_max, body_y_min, body_y_max, body_z_min, body_z_max);
-    printf("  Checking point: (%.3f, %.3f, %.3f) m -> (%.1f, %.1f, %.1f) mm\n",
-           pt.x, pt.y, pt.z, pt.x*1000, pt.y*1000, pt.z*1000);
+    std::cerr << "\n--- filterBodyPoints first call ---" << std::endl;
+    std::cerr << "  Current filter params: X=[" << body_x_min << "," << body_x_max << "] Y=["
+               << body_y_min << "," << body_y_max << "] Z=[" << body_z_min << "," << body_z_max << "] mm" << std::endl;
+    std::cerr << "  Checking point: (" << pt.x << ", " << pt.y << ", " << pt.z << ") m -> ("
+               << pt.x*1000 << ", " << pt.y*1000 << ", " << pt.z*1000 << ") mm" << std::endl;
     first_call = false;
   }
 
@@ -724,13 +723,12 @@ bool Preprocess::filterBodyPoints(const PointType &pt)
   {
     body_filtered_count++;
     body_total_count++;
-    // 每过滤100个点输出一次
-    if (body_filtered_count % 100 == 0)
+    // 每过滤10个点输出一次
+    if (body_filtered_count % 10 == 0)
     {
-      printf("Body filter: *** FILTERED *** point (%.1f,%.1f,%.1f) mm (filtered: %d/%d, %.1f%%)\n",
-             x_mm, y_mm, z_mm, body_filtered_count, body_total_count,
-             body_filtered_count * 100.0 / body_total_count);
-      fflush(stdout);
+      std::cerr << "Body filter: *** FILTERED *** point (" << x_mm << "," << y_mm << "," << z_mm
+                 << ") mm (filtered: " << body_filtered_count << "/" << body_total_count << ", "
+                 << (body_filtered_count * 100.0 / body_total_count) << "%)" << std::endl;
     }
     return false;  // 在立方体内，过滤掉
   }

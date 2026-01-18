@@ -753,12 +753,18 @@ int main(int argc, char** argv)
     nh.param<double>("body_filter/y_max", body_y_max, 680.0);
     nh.param<double>("body_filter/z_min", body_z_min, -1820.0);
     nh.param<double>("body_filter/z_max", body_z_max, 0.0);  // 修复：默认值应为0.0
-    ROS_INFO("=== Reading body_filter parameters from config file ===");
-    ROS_INFO("  X: [%.1f, %.1f] mm", body_x_min, body_x_max);
-    ROS_INFO("  Y: [%.1f, %.1f] mm", body_y_min, body_y_max);
-    ROS_INFO("  Z: [%.1f, %.1f] mm", body_z_min, body_z_max);
+
+    // 使用 cerr 直接输出，避免 ROS 日志缓冲
+    std::cerr << "\n=== Reading body_filter parameters from config file ===" << std::endl;
+    std::cerr << "  X: [" << body_x_min << ", " << body_x_max << "] mm" << std::endl;
+    std::cerr << "  Y: [" << body_y_min << ", " << body_y_max << "] mm" << std::endl;
+    std::cerr << "  Z: [" << body_z_min << ", " << body_z_max << "] mm" << std::endl;
+    std::cerr << "====================================" << std::endl;
+
     p_pre->setBodyFilter(body_x_min, body_x_max, body_y_min, body_y_max, body_z_min, body_z_max);
-    ROS_INFO("Body filter enabled: params loaded from config file");
+
+    std::cerr << ">>> setBodyFilter called!" << std::endl;
+    std::cerr << "Body filter enabled: params loaded from config file" << std::endl;
     ROS_INFO("Body Filter: X=[%.1f,%.1f]mm, Y=[%.1f,%.1f]mm, Z=[%.1f,%.1f]mm",
               body_x_min, body_x_max, body_y_min, body_y_max, body_z_min, body_z_max);
     nh.param<int>("preprocess/scan_line", p_pre->N_SCANS, 16);
